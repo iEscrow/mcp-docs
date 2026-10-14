@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.iescrow/mcp",
+  "name": "io.github.iEscrow/mcp",
   "title": "iEscrow",
   "description": "Crypto escrow for AI agents: quote, open and follow P2P trades; money moves only with human 2FA.",
   "repository": {
