@@ -1,0 +1,17 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.iescrow/mcp",
+  "description": "Crypto escrow for AI agents: quote, open and follow P2P crypto trades on iEscrow; anything that moves money is approved by the human with 2FA.",
+  "repository": {
+    "url": "https://github.com/iEscrow/mcp-docs",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "websiteUrl": "https://iescrow.io/ai",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.iescrow.io/mcp"
+    }
+  ]
+}
