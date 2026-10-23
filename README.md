@@ -63,7 +63,7 @@ Point the host to the URL above with the Streamable HTTP transport. The server p
 | `wallet:read` | balances and masked payment accounts |
 | `trades:read` | state of the user's trades and ads |
 | `trades:write` | open trades, request approvals to lock crypto or confirm payments, cancel own requests |
-| `ads:write` | prepare marketplace ads (always subject to the human's approval); not advertised in the resource metadata, requested explicitly by hosts that support it |
+| `ads:write` | prepare marketplace ads (always subject to the human's approval) |
 
 Scopes are chosen on the consent screen and can be revoked at any time from *Connected apps* in the user's iEscrow settings.
 
