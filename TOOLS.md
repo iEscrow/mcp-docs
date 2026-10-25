@@ -1,6 +1,6 @@
 # Tools
 
-Sixteen tools. "Commits" says whether the call can move money: **no** means read-only or reversible; **human** means the tool only creates an approval that the account owner must confirm by link with their two-factor code.
+Twenty tools. "Commits" says whether the call can move money: **no** means read-only or reversible; **human** means the tool only creates an approval that the account owner must confirm by link with their two-factor code.
 
 Identifiers for a trade (`trade_id`) accept either the numeric id or the public id shown in the trade URL.
 
@@ -35,8 +35,21 @@ Best executable offers on the P2P marketplace for buying or selling crypto with 
 | `payment_method` | string | no | filter by method name, e.g. `Mercado Pago`, `PIX` |
 | `limit` | integer 1–20 | no | |
 
+### `get_swap_quote` — Get executable crypto-for-crypto offers · commits: no
+Best executable offers to swap one crypto for another, for the given amount. Both legs are held in escrow and verified on chain, so there is no payment account, no bank and nobody confirming a transfer by hand. The platform fee is charged on **each leg separately**, so every offer states what the user delivers with its fee and what they receive net, each in its own currency. Give either `give_amount` or `get_amount`, not both. Each offer also carries `open_trade_args`: pass them to `open_trade` exactly as given.
+
+| Parameter | Type | Required | Notes |
+|---|---|---|---|
+| `give_currency` | string | yes | crypto the user delivers, e.g. `USDT` |
+| `get_currency` | string | yes | crypto the user receives, e.g. `BTC` |
+| `give_amount` | number | one of the two | amount the user wants to deliver |
+| `get_amount` | number | one of the two | amount the user wants to receive |
+| `limit` | integer 1–20 | no | |
+
+For crypto against government money use `get_quote` instead.
+
 ### `open_trade` — Open a trade from an offer · commits: no (reserves the offer)
-Takes an offer from `get_quote` and opens the trade. With `side=buy` the user will pay fiat and receive the crypto in their iEscrow balance. With `side=sell` the user sells crypto against a buy ad and then locks it with `fund_escrow`. Never delivers to an external wallet. Idempotent within 10 minutes. Call `get_trade` afterwards for the exact amount and account.
+Takes an offer from `get_quote` or `get_swap_quote` and opens the trade. For a crypto-for-crypto offer pass the `open_trade_args` from the quote and no payment account. With `side=buy` the user will pay fiat and receive the crypto in their iEscrow balance. With `side=sell` the user sells crypto against a buy ad and then locks it with `fund_escrow`. Never delivers to an external wallet. Idempotent within 10 minutes. Call `get_trade` afterwards for the exact amount and account.
 
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
@@ -128,6 +141,21 @@ Prepares a marketplace ad. `side=sell`: the user sells crypto from their iEscrow
 | `payment_account_ids` | integer[] (1–10) | yes | accounts buyers can pay to (from `get_my_payment_accounts`) |
 | `idempotency_key` | string | no | |
 
+### `publish_swap_ad` — Publish a crypto-for-crypto ad · commits: human · scope `ads:write`
+Prepares an ad to swap one crypto for another: the user offers `give_currency` from their iEscrow balance and receives `get_currency` there. Approving reserves the full give amount plus its fee from the balance until the ad is sold or closed, so the advertised liquidity is always real. No payment account is involved. Creates an approval and returns `approve_url`.
+
+| Parameter | Type | Required | Notes |
+|---|---|---|---|
+| `give_currency` | string | yes | crypto the user offers, e.g. `USDT` |
+| `get_currency` | string | yes | crypto the user wants in exchange, e.g. `BTC` |
+| `total_give_amount` | number | yes | total to offer, in `give_currency` |
+| `price_mode` | `fixed` \| `floating` | yes | |
+| `get_per_give` | number | for `fixed` | how much `get_currency` per 1 `give_currency` |
+| `margin_pct` | number −20…50 | no | for `floating`; default 0 |
+| `min_order_get` | number | yes | minimum per order, in `get_currency` |
+| `max_order_get` | number | yes | maximum per order, in `get_currency` |
+| `idempotency_key` | string | no | |
+
 ### `list_my_ads` — My marketplace ads · commits: no
 The user's own ads: state, remaining liquidity, price mode, margin and per-order limits.
 
@@ -139,3 +167,38 @@ Closes one of the user's open ads. Unsold liquidity returns to the iEscrow balan
 | Parameter | Type | Required |
 |---|---|---|
 | `ad_id` | integer | yes |
+
+## Private escrow with one specific person
+
+These two do not go through the marketplace: they prepare a request addressed to one person, who then has 24 hours to accept it.
+
+Both require that person's **reference number**, which they find in their own iEscrow account and share with the requester. A username alone is not enough. That is what stops an agent from firing off requests at a list of usernames, and it means the number has to come from the user: never guess it, ask for it. `get_readiness` returns the connected user's own number, to pass on to others.
+
+Nothing is created when these are called. The whole request is held in the approval, and only the owner's confirmation by link sends it.
+
+### `open_private_request` — Request an escrow for goods or services · commits: human · scope `trades:write`
+A private escrow to buy or sell a physical product or a service paid in crypto. The buyer's crypto is held by iEscrow and released when the buyer confirms delivery, or milestone by milestone for a service.
+
+| Parameter | Type | Required | Notes |
+|---|---|---|---|
+| `counterparty_username` | string | yes | the other person's iEscrow username |
+| `counterparty_reference` | string | yes | their reference number, which they have to give you |
+| `kind` | `product` \| `service` | yes | product releases in full on confirmation; service releases milestone by milestone |
+| `role` | `buyer` \| `seller` | yes | what the connected user is in this deal |
+| `title` | string | yes | what is being bought or sold |
+| `description` | string | no | the terms: what is delivered, when, in what condition |
+| `crypto` | string | yes | crypto the deal is priced and paid in |
+| `amount` | number | yes | total in that crypto |
+| `milestones` | array of `{title, percentage}` | for `service` | the percentages must add up to exactly 100 |
+
+### `open_private_swap` — Request a swap with one specific person · commits: human · scope `trades:write`
+A private escrow to exchange one asset for another at a price the two have already agreed: crypto for crypto, or crypto for fiat. To trade with the open market use `get_swap_quote` or `get_quote` instead.
+
+| Parameter | Type | Required | Notes |
+|---|---|---|---|
+| `counterparty_username` | string | yes | the other person's iEscrow username |
+| `counterparty_reference` | string | yes | their reference number, which they have to give you |
+| `give_currency` | string | yes | what the connected user sends |
+| `give_amount` | number | yes | how much they send |
+| `get_currency` | string | yes | what they receive |
+| `get_amount` | number | yes | how much they receive; the two amounts set the agreed price |

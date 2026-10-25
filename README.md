@@ -69,7 +69,7 @@ Scopes are chosen on the consent screen and can be revoked at any time from *Con
 
 ## Rate limits
 
-Per connection: 60 calls per minute, 10 trade openings per hour, 20 money-moving approval requests per hour. One concurrent long-poll (`wait_for_trade_update`) per user. A limited call returns `error_key` and `retry_after_s`.
+Per connection: 60 calls per minute, 10 openings per hour (taking a marketplace offer or requesting a private escrow), 20 money-moving approval requests per hour. One concurrent long-poll (`wait_for_trade_update`) per user. A limited call returns `error_key` and `retry_after_s`.
 
 ## A typical flow (buying crypto with a bank transfer)
 
@@ -81,6 +81,10 @@ Per connection: 60 calls per minute, 10 trade openings per hour, 20 money-moving
 6. `wait_for_trade_update` — the trade moves to `released` when the seller confirms. The crypto is now in the user's iEscrow balance.
 
 Selling is the mirror image: `open_trade` with `side=sell`, then `fund_escrow` (the human approves the lock by link), then `confirm_received` once the fiat arrives (again approved by link).
+
+Swapping one crypto for another is shorter, because no bank is involved and nobody has to confirm a transfer: `get_swap_quote`, then `open_trade` with the offer's `open_trade_args`, then `fund_escrow`. Both legs are verified on chain and the escrow settles by itself once each side has funded.
+
+To deal with one specific person instead of the market, use `open_private_request` (a product or a service, paid milestone by milestone if you want) or `open_private_swap`. Both need that person's reference number, which they share with you from their own account, so ask the user for it rather than guessing: that requirement is what keeps an agent from firing requests at a list of usernames.
 
 ## Errors
 
