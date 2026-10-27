@@ -2,12 +2,21 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.iEscrow/mcp",
   "title": "iEscrow",
-  "description": "Crypto escrow for AI agents: quote, open and follow P2P trades; money moves only with human 2FA.",
+  "description": "Agentic payments, trading and marketplace: buy and sell crypto, products and services with escrow. Money moves only with human 2FA.",
+  "icons": [
+    {
+      "src": "https://api.iescrow.io/mcp/icon.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "180x180"
+      ]
+    }
+  ],
   "repository": {
     "url": "https://github.com/iEscrow/mcp-docs",
     "source": "github"
   },
-  "version": "0.1.0",
+  "version": "0.2.0",
   "websiteUrl": "https://iescrow.io/ai",
   "remotes": [
     {
