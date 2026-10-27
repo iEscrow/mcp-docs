@@ -5,7 +5,7 @@ iEscrow is a cryptocurrency escrow platform: in every trade the crypto is held b
 - **Endpoint:** `https://api.iescrow.io/mcp`
 - **Transport:** Streamable HTTP, stateless
 - **Auth:** OAuth 2.1 (authorization server at `https://api.iescrow.io`), PKCE, dynamic client registration
-- **Tools:** 16, listed in [TOOLS.md](TOOLS.md)
+- **Tools:** 24, listed in [TOOLS.md](TOOLS.md)
 - **Website:** https://iescrow.io · **For AI agents:** https://iescrow.io/ai
 
 ## The principle: the agent prepares, the human commits
@@ -69,7 +69,7 @@ Scopes are chosen on the consent screen and can be revoked at any time from *Con
 
 ## Rate limits
 
-Per connection: 60 calls per minute, 10 openings per hour (taking a marketplace offer or requesting a private escrow), 20 money-moving approval requests per hour. One concurrent long-poll (`wait_for_trade_update`) per user. A limited call returns `error_key` and `retry_after_s`.
+Per connection: 60 calls per minute, 10 openings per hour (taking a marketplace offer, requesting a private escrow or buying from the catalog), 20 money-moving approval requests per hour. One concurrent long-poll (`wait_for_trade_update`) per user. A limited call returns `error_key` and `retry_after_s`.
 
 ## A typical flow (buying crypto with a bank transfer)
 

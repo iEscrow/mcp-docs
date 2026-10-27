@@ -202,3 +202,47 @@ A private escrow to exchange one asset for another at a price the two have alrea
 | `give_amount` | number | yes | how much they send |
 | `get_currency` | string | yes | what they receive |
 | `get_amount` | number | yes | how much they receive; the two amounts set the agreed price |
+
+## Catalog of products and services
+
+A public catalog of physical products and services sold for crypto. Every result carries the seller's **real track record** (identity verified, completed trades, success and dispute rates, star rating); there is no invented score. Buying holds the buyer's crypto with iEscrow and releases it only when the buyer confirms delivery, or when the delivery window plus seven days runs out without a dispute. Empty results mean nobody is selling that right now: never invent listings.
+
+### `search_listings` — Search products and services for sale · commits: no
+| Parameter | Type | Required | Notes |
+|---|---|---|---|
+| `query` | string | no | free text, e.g. `macbook pro m3` |
+| `kind` | `product` \| `service` | no | |
+| `category` | string | no | one of the categories returned in `categories` |
+| `condition` | `new` \| `used` \| `refurbished` | no | products only |
+| `min_price_usd`, `max_price_usd` | number | no | prices are in US dollars |
+| `ships_to` | ISO-2 | no | the buyer's country; worldwide listings always match |
+| `min_rating` | 1–5 | no | sellers with no ratings yet are excluded |
+| `min_completed_trades` | integer | no | |
+| `identity_verified_only` | boolean | no | recommended above a few hundred dollars |
+| `sort` | `newest` \| `price_asc` \| `price_desc` \| `reputation` | no | |
+| `limit` | 1–50 | no | |
+
+### `get_listing` — One listing, with a quote for the connected user · commits: no
+Full detail plus exactly how much crypto would be locked (USD converted at the current rate, plus iEscrow's fee) and how many days the seller has to deliver before the escrow releases on its own.
+
+| Parameter | Type | Required | Notes |
+|---|---|---|---|
+| `listing_id` | number or string | yes | `listing_id` or `public_id` from `search_listings` |
+| `quantity` | integer | no | default 1 |
+
+### `get_seller_profile` — Reputation of a seller · commits: no
+Completed trades, cancellations at fault, dispute rate, average star rating and whether the identity is verified. Use `seller.user_id` from `search_listings`.
+
+| Parameter | Type | Required | Notes |
+|---|---|---|---|
+| `user_id` | integer | yes | |
+
+### `buy_listing` — Buy a listing, paying on delivery through escrow · commits: human · scope `trades:write`
+Creates an approval. When the user approves it with their 2FA, iEscrow creates the escrow **and locks the crypto from the user's iEscrow balance in the same act**, so the balance must cover the quote from `get_listing`. The seller then ships with a tracking number (`get_trade` shows it); the money is released when the user confirms delivery with `confirm_received`, or by itself when the delivery window plus seven days runs out without a dispute.
+
+| Parameter | Type | Required | Notes |
+|---|---|---|---|
+| `listing_id` | number or string | yes | `listing_id` or `public_id` |
+| `quantity` | integer | no | default 1 |
+| `shipping_address` | object | for products | `{ name, line1, line2?, city, state?, postal_code?, country (ISO-2), phone? }`; ask the user, never guess |
+| `note` | string | no | a note for the seller |
