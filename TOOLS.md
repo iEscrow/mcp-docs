@@ -207,13 +207,15 @@ A private escrow to exchange one asset for another at a price the two have alrea
 
 A public catalog of physical products and services sold for crypto. Every result carries the seller's **real track record** (identity verified, completed trades, success and dispute rates, star rating); there is no invented score. Buying holds the buyer's crypto with iEscrow and releases it only when the buyer confirms delivery, or when the delivery window plus seven days runs out without a dispute. Empty results mean nobody is selling that right now: never invent listings.
 
-### `search_listings` — Search products and services for sale · commits: no
+> **Renamed on 2026-11-01.** `search_listings` → `search_products_and_services`, `get_listing` → `get_product_or_service`, `buy_listing` → `buy_product_or_service`, `list_my_listings` → `list_my_products_and_services`. A client with many connected tools loads tool *descriptions* on demand, so until it does the agent sees only the names: they now say what they do. The `listing_id` parameter and the `listing_id` field in results did **not** change.
+
+### `search_products_and_services` — Search products and services for sale · commits: no
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
 | `query` | string | no | free text, e.g. `macbook pro m3` |
 | `kind` | `product` \| `service` | no | |
 | `category` | string | no | one of the categories returned in `categories` |
-| `condition` | `new` \| `used` \| `refurbished` | no | products only |
+| `condition` | `new` \| `like_new` \| `open_box` \| `refurbished` \| `used` | no | products only, best to worst |
 | `min_price_usd`, `max_price_usd` | number | no | prices are in US dollars |
 | `ships_to` | ISO-2 | no | the buyer's country; worldwide listings always match |
 | `min_rating` | 1–5 | no | sellers with no ratings yet are excluded |
@@ -221,24 +223,39 @@ A public catalog of physical products and services sold for crypto. Every result
 | `identity_verified_only` | boolean | no | recommended above a few hundred dollars |
 | `sort` | `newest` \| `price_asc` \| `price_desc` \| `reputation` | no | |
 | `limit` | 1–50 | no | |
+| `offset` | integer | no | skip this many results, to page past `limit` |
 
-### `get_listing` — One listing, with a quote for the connected user · commits: no
+The result carries `total`, `showing` (`limit`, `offset`, `returned`), `has_more` and `next_offset`: **fifty results do not mean fifty is all there is.** It also carries `counts_by_filter`, how many listings sit behind each other value of the same filter, so an empty search can answer with where there *is* stock instead of with nothing.
+
+Every listing carries `status` and `buyable`, so a paused or sold-out one is never offered as if it could be bought.
+
+### `list_my_products_and_services` — The user's own catalog listings · commits: no · scope `ads:write`
+What the connected user has published in the catalog, with stock, how many sold and the status of each one. Read-only: publishing or editing a catalog listing is not available through the agent — the person does that on the website.
+
+| Parameter | Type | Required | Notes |
+|---|---|---|---|
+| `status` | `active` \| `paused` \| `sold_out` \| `closed` | no | only listings in this state |
+| `limit` | 1–50 | no | |
+
+### `get_product_or_service` — One listing, with a quote for the connected user · commits: no
 Full detail plus exactly how much crypto would be locked (USD converted at the current rate, plus iEscrow's fee) and how many days the seller has to deliver before the escrow releases on its own.
 
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
-| `listing_id` | number or string | yes | `listing_id` or `public_id` from `search_listings` |
+| `listing_id` | number or string | yes | `listing_id` or `public_id` from `search_products_and_services` |
 | `quantity` | integer | no | default 1 |
 
 ### `get_seller_profile` — Reputation of a seller · commits: no
-Completed trades, cancellations at fault, dispute rate, average star rating and whether the identity is verified. Use `seller.user_id` from `search_listings`.
+Completed trades, cancellations at fault, dispute rate, average star rating and whether the identity is verified. Use `seller.user_id` from `search_products_and_services`.
+
+**The percentages come back `null` below five closed trades**, together with the denominator they would have been calculated on (`rates_based_on_trades`) and `new_seller`. A seller with one completed trade is not "100% success": that is one data point. Report the raw counts, never an invented rate.
 
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
 | `user_id` | integer | yes | |
 
-### `buy_listing` — Buy a listing, paying on delivery through escrow · commits: human · scope `trades:write`
-Creates an approval. When the user approves it with their 2FA, iEscrow creates the escrow **and locks the crypto from the user's iEscrow balance in the same act**, so the balance must cover the quote from `get_listing`. The seller then ships with a tracking number (`get_trade` shows it); the money is released when the user confirms delivery with `confirm_received`, or by itself when the delivery window plus seven days runs out without a dispute.
+### `buy_product_or_service` — Buy a listing, paying on delivery through escrow · commits: human · scope `trades:write`
+Creates an approval. When the user approves it with their 2FA, iEscrow creates the escrow **and locks the crypto from the user's iEscrow balance in the same act**, so the balance must cover the quote from `get_product_or_service`. The seller then ships with a tracking number (`get_trade` shows it); the money is released when the user confirms delivery with `confirm_received`, or by itself when the delivery window plus seven days runs out without a dispute.
 
 | Parameter | Type | Required | Notes |
 |---|---|---|---|

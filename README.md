@@ -5,7 +5,7 @@ iEscrow is a cryptocurrency escrow platform: in every trade the crypto is held b
 - **Endpoint:** `https://api.iescrow.io/mcp`
 - **Transport:** Streamable HTTP, stateless
 - **Auth:** OAuth 2.1 (authorization server at `https://api.iescrow.io`), PKCE, dynamic client registration
-- **Tools:** 24, listed in [TOOLS.md](TOOLS.md)
+- **Tools:** 25, listed in [TOOLS.md](TOOLS.md)
 - **Website:** https://iescrow.io · **For AI agents:** https://iescrow.io/ai
 
 ## The principle: the agent prepares, the human commits
