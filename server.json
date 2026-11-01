@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.iEscrow/mcp",
   "title": "iEscrow",
-  "description": "Agentic payments, trading and marketplace: buy and sell crypto, products and services with escrow. Money moves only with human 2FA.",
+  "description": "Buy products and services with escrow, or trade crypto P2P. Money moves only with human 2FA.",
   "icons": [
     {
       "src": "https://api.iescrow.io/mcp/icon.png",
