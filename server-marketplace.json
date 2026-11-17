@@ -1,0 +1,27 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.iEscrow/marketplace",
+  "title": "iEscrow Marketplace (read-only)",
+  "description": "Search iEscrow: products, services and P2P crypto offers held in escrow. Read-only, no login.",
+  "icons": [
+    {
+      "src": "https://api.iescrow.io/mcp/icon.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "180x180"
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/iEscrow/mcp-docs",
+    "source": "github"
+  },
+  "version": "0.4.0",
+  "websiteUrl": "https://iescrow.io/ai",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.iescrow.io/mcp/public"
+    }
+  ]
+}

@@ -1,12 +1,46 @@
-# iEscrow MCP server
+# iEscrow MCP servers
 
-iEscrow is a cryptocurrency escrow platform: in every trade the crypto is held by iEscrow until both sides have delivered, so nobody has to hand over first. This repository documents the **iEscrow MCP server**, which lets an AI agent (Claude, ChatGPT or any MCP host) operate an iEscrow account on behalf of the user who authorized it.
+iEscrow is an escrow for crypto, fiat, goods and services: in every deal the crypto is held by iEscrow until both sides have delivered, so nobody has to hand over first. People use it to buy and sell crypto P2P, to buy products and services paid in crypto, and to close deals between companies.
 
-- **Endpoint:** `https://api.iescrow.io/mcp`
-- **Transport:** Streamable HTTP, stateless
-- **Auth:** OAuth 2.1 (authorization server at `https://api.iescrow.io`), PKCE, dynamic client registration
-- **Tools:** 25, listed in [TOOLS.md](TOOLS.md)
+This repository documents the **two iEscrow MCP servers**:
+
+| | Public, read-only | With an account |
+|---|---|---|
+| **Endpoint** | `https://api.iescrow.io/mcp/public` | `https://api.iescrow.io/mcp` |
+| **Auth** | none | OAuth 2.1, PKCE, dynamic client registration |
+| **What it does** | search the catalog of products and services, show a listing with its quote, show a seller's track record, quote crypto offers | everything the public one does, plus open trades, buy, publish ads and follow them on behalf of the user |
+| **Moves money** | never | only when the human approves by link with their 2FA |
+| **Tools** | 5 | 25, listed in [TOOLS.md](TOOLS.md) |
+
+- **Transport:** Streamable HTTP, stateless, on both
+- **Server cards:** `https://api.iescrow.io/mcp/public/server-card` and `https://api.iescrow.io/mcp/server-card`
 - **Website:** https://iescrow.io · **For AI agents:** https://iescrow.io/ai
+
+## The public server: look without an account
+
+`https://api.iescrow.io/mcp/public` answers anyone, with no login and no token. It exposes five read-only tools, with the same names and the same response shape as on the server with an account:
+
+| Tool | What it returns |
+|---|---|
+| `search_products_and_services` | Listings from the public catalog of products and services sold for crypto, with price in USD, shipping times and the seller's real track record |
+| `get_product_or_service` | One listing in full, plus how much crypto a buyer would lock to buy it right now, iEscrow's fee included |
+| `get_seller_profile` | Completed trades, cancellations at fault, dispute rate, star rating and whether the seller's identity is verified |
+| `get_quote` | Live P2P offers to buy or sell a crypto with fiat money, with the all-in amounts |
+| `get_swap_quote` | Live offers to swap one crypto for another |
+
+It cannot open a trade, buy, publish, or see anyone's balance or accounts. Every listing carries `url`, the page on iescrow.io where a person completes the purchase with the payment held in escrow, and every response says how to continue: on the web, or by connecting the user's account to the server with an account.
+
+Connect it like any remote MCP server without authentication:
+
+```
+claude mcp add --transport http iescrow-marketplace https://api.iescrow.io/mcp/public
+```
+
+In Claude, ChatGPT, Gemini or Perplexity, add a custom connector with that URL and no authentication.
+
+Limits: 30 tool calls per minute per IP address. A limited call returns `error_key` and `retry_after_s`.
+
+The rest of this document is about the server with an account.
 
 ## The principle: the agent prepares, the human commits
 
@@ -69,7 +103,7 @@ Scopes are chosen on the consent screen and can be revoked at any time from *Con
 
 ## Rate limits
 
-Per connection: 60 calls per minute, 10 openings per hour (taking a marketplace offer, requesting a private escrow or buying from the catalog), 20 money-moving approval requests per hour. One concurrent long-poll (`wait_for_trade_update`) per user. A limited call returns `error_key` and `retry_after_s`.
+On the server with an account, per connection: 60 calls per minute, 10 openings per hour (taking a marketplace offer, requesting a private escrow or buying from the catalog), 20 money-moving approval requests per hour. One concurrent long-poll (`wait_for_trade_update`) per user. A limited call returns `error_key` and `retry_after_s`.
 
 ## A typical flow (buying crypto with a bank transfer)
 
@@ -96,4 +130,4 @@ The MCP server never opens the database and holds no secrets of its own: it veri
 
 ## About this repository
 
-This repository holds the public documentation of the server and the manifest used to list it in MCP registries. The server's source code is not published here.
+This repository holds the public documentation of the two servers and the manifests used to list them in MCP registries (`server.json` for the server with an account, `server-marketplace.json` for the public one). The server's source code is not published here.

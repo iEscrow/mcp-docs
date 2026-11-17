@@ -1,5 +1,7 @@
 # Tools
 
+> Five of these tools also exist on the public, read-only server at `https://api.iescrow.io/mcp/public`, which needs no account: `search_products_and_services`, `get_product_or_service`, `get_seller_profile`, `get_quote` and `get_swap_quote`. Same names and same response shape, minus what only exists with a session (the user's compatible payment accounts and the arguments for `open_trade`), plus a `how_to_buy` or `how_to_trade` block that says how the person continues.
+
 Twenty tools. "Commits" says whether the call can move money: **no** means read-only or reversible; **human** means the tool only creates an approval that the account owner must confirm by link with their two-factor code.
 
 Identifiers for a trade (`trade_id`) accept either the numeric id or the public id shown in the trade URL.
